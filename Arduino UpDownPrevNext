@@ -1,0 +1,116 @@
+// Pin 13 has an LED connected on most Arduino boards.
+// give it a name:
+int rows[]={30,32,34,36,38,40};
+int cols[]={0,1,2,3,4,5};
+int matrix[6][6];
+char key_prev = 0;
+int count = 0;
+#define KEY_NEXT 'a'
+#define KEY_PREVIOUS 'b'
+#define KEY_VOLUMEUP 'c'
+#define KEY_VOLUMEDOWN 'd'
+#define THRESHOLD 500
+
+void setup()
+{
+  int i;
+ 
+  for (i=0; i<6; i++)
+    pinMode(rows[i], OUTPUT); 
+  Serial.begin(9600);
+  Serial3.begin(115200);
+}
+
+void print_key(char key)
+{
+    if (key == KEY_NEXT) Serial.println("NEXT");
+    else if (key == KEY_PREVIOUS) Serial.println("PREVIOUS");
+    else if (key == KEY_VOLUMEUP) Serial.println("VOLUME UP");
+    else if (key == KEY_VOLUMEDOWN) Serial.println("VOLUME DOWN");
+}
+
+void loop()
+{
+  int x, y;
+  char key = 0;
+
+  for (y=0; y < 6; y++) {
+    digitalWrite(rows[y], HIGH);
+    for (x=0; x < 6; x++) {
+      matrix[x][y] = analogRead(x);
+    }
+    digitalWrite(rows[y], LOW);
+  }
+
+#if 0
+  for (y=0; y < 6; y++) {
+    Serial.printf("%4d %4d %4d %4d %4d %4d\n",
+      matrix[0][y], matrix[1][y], matrix[2][y],
+      matrix[3][y], matrix[4][y], matrix[5][y]);
+  }
+  Serial.print("\n");
+#else
+
+#if 0
+  for (y=0; y < 6; y++) {
+    for (x=0; x < 6; x++) {
+      Serial.printf("%d", matrix[x][y]);
+      if (!(y==5 && x==5)) Serial.printf("-");
+    }
+  }
+  Serial.printf("\n");
+#endif
+
+#endif
+  for (x=0; x < 2; x++) {
+    for (y=0; y < 5; y++) {
+      if (matrix[x][y] >= THRESHOLD) {
+        key = KEY_PREVIOUS;
+        goto done;
+      }
+    }
+  }
+  for (x=2; x < 4; x++) {
+    for (y=3; y < 6; y++) {
+      if (matrix[x][y] >= THRESHOLD) {
+        key = KEY_VOLUMEUP;
+        goto done;
+      }
+    }
+  }
+  for (x=2; x < 4; x++) {
+    for (y=0; y < 3; y++) {
+      if (matrix[x][y] >= THRESHOLD) {
+        key = KEY_VOLUMEDOWN;
+        goto done;
+      }
+    }
+  }
+  for (x=4; x < 6; x++) {
+    for (y=0; y < 6; y++) {
+      if (matrix[x][y] >= THRESHOLD) {
+        key = KEY_NEXT;
+        goto done;
+      }
+    }
+  }
+done:
+  if (key) {
+    if (key == key_prev) {
+      count++;
+      if (count > 100) {
+        print_key(key);
+        Serial3.println(key);
+        count = 0;
+      }
+    } else {
+      print_key(key);
+      Serial3.println(key);
+    }
+    key_prev = key;
+  } else {
+    key_prev = 0;
+    count = 0;
+  }
+  delay(5);
+}
