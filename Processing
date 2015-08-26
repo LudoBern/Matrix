@@ -1,0 +1,55 @@
+import processing.serial.*;
+
+Serial myPort;  // Create object from Serial class
+String val;     // Data received from the serial port
+int matrix[][];
+
+void setup()
+{
+  String portName = Serial.list()[2]; //change the 0 to a 1 or 2 etc. to match your port
+  myPort = new Serial(this, portName, 9600);
+  println("Port name: " + portName);
+  matrix = new int[6][6];
+  
+  size(600,600);
+  smooth();
+  noStroke();
+}
+
+void draw()
+{
+  if ( myPort.available() > 0) 
+  {  // If data is available,
+  val = myPort.readStringUntil('\n');         // read it and store it in val
+  } 
+  if (val != null) {
+    val = val.replaceAll("\r\n","");
+    String tokens[] = val.split("-");
+    if (tokens.length == 36) {
+      //println(val + " len: " + tokens.length);
+      for (int y=0; y < 6; y++) {
+        for (int x=0; x < 6; x++) {
+          int index = 6*y+x;
+          //println("" + index + ": " + tokens[6*y+x] + "|");
+          matrix[x][y] = Integer.parseInt(tokens[6*y+x]); 
+        }
+      }
+      background(255);
+
+      float largeurCol = width/6;
+      float hateurRan = height/6;
+
+      fill(0);
+      for(int i=0 ; i < 6 ; i++){
+        for(int j=0 ; j < 6 ; j++){
+          color couleur =  255 - (int)(matrix[i][j] * ((float)255 / 1024));
+          if (couleur > 190) couleur = 255;
+          fill(couleur);
+          float x = i*largeurCol;
+          float y = j*hateurRan;
+          rect( x+1 , y+1 , largeurCol-2 , hateurRan-2 );
+        }
+      }
+    }
+  }
+}
