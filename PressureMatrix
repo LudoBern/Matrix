@@ -23,6 +23,7 @@ void setup()
 
 void print_key(char key)
 {
+// le return here !
   return;
   if (key == KEY_NEXT) Serial.println("NEXT");
   else if (key == KEY_PREVIOUS) Serial.println("PREVIOUS");
@@ -52,6 +53,7 @@ void loop()
   Serial.print("\n");
 #else
 
+// replace #if 1 by #if 0
 #if 1
   for (y=0; y < 6; y++) {
     for (x=0; x < 6; x++) {
